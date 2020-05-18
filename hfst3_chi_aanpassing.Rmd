@@ -1,0 +1,323 @@
+#Chikwadraattoets
+
+```{block2, type='ABD'}
+
+* Lees *chapter* 8 (*Fitting probability models to frequency data*)
+* Lees *section* 9.4 (*The $\chi^2$ contigency test*)
+
+```
+
+Dit hoofdstuk gaat, net als de vorige hoofdstukken, over nominale data.
+Heb je meer dan twee categoriën, dan kan je geen binomiale toets meer gebruiken.
+Daarvoor is de Chi-kwadraattoets ontwikkeld.
+Deze ben je al tegengekomen in de output van de verschiltoets voor fracties (`prop.test()`).
+Nu gaan we hier dieper op in.
+
+
+##Chi-kwadraattoets op aanpassing
+Met de Chi-kwadraattoets op aanpassing (*goodness of fit*) kan onderzocht worden of de waargenomen aantallen een bepaalde verdeling volgen.
+Er wordt getoetst of de gevonden frequenties in het onderzoek overeenkomen met een verwachte verdeling tussen die frequenties op basis van bijvoorbeeld:
+
+* eerdere waarnemingen
+* een theoretisch model (bijvoorbeeld uit de genetica)
+* kennis van de hele populatie (representativiteit). 
+
+De Chi-kwadraattoets op aanpassing toetst of het aannemelijk is dat de aantallen in een bepaalde steekproef overeenkomen met de theoretisch te verwachten waarden.
+De toets maakt onderscheid tussen ‘kleine’ verschillen en ‘grote’ verschillen: worden de verschillen veroorzaakt door het toeval (verschillen zijn klein) of zal de conclusie zijn dat de verdeling in de steekproef afwijkt van de verwachte verdeling (verschillen zijn voldoende groot, ofwel significant).
+
+Als voorbeeld data van jullie kruisingsexperiment met kolen:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+df <- data.frame(fenotype=c("glad-groen", "groen-gekruld",
+                            "rood-glad", "rood-gekruld"),
+                 frequentie=c(3, 14, 10, 37))
+knitr::kable(df)
+```
+
+De onderzoeksvraag was of de gevonden verdeling de verwachte verdeling volgt als rood en gekruld dominanten eigenschappen zijn, en de kruising Mendeliaanse overerving volgt.
+
+De hypotheses zijn dan:
+
+* H~0~: de verdeling volgt de theoretische verdeling.
+* H~1~: de verdeling volgt niet de theoretische verdeling.
+
+
+##Voorwaarden
+De Chi-kwadraattoets is een afgeleide van de F-verdeling, welke weer een afgeleide is van de normale verdeling.
+Dat werkt goed zolang de kans op een bepaalde frequentie niet te klein is.
+Dat kan je checken met de **regel van Cochran**:
+
+* Alle verwachte frequenties zijn groter of gelijk aan 1
+* Het percentage cellen met verwachte frequenties kleiner dan 5 is minder dan 20%
+
+Als niet aan deze voorwaarden voldaan wordt, heb je de volgende opties:
+
+* Categoriën samenvoegen (zodat de gecombineerde frequenties boven de drempelwaarde komen)
+* De H~0~ simuleren door middel van heel veel berekeneningen (wat heel gemakkelijk gaat in R)
+
+```{exercise, cochran}
+Kruisingsexperiment:
+
+* Test of de data van de kruisingsproef voldoet aan de regels van Cochran
+
+```
+
+
+##Chi-kwadraattoets in R
+
+Met de functie `chisq.test()` voor je de Chi-kwadraattoets uit (in dit geval voor de data van de kruisingsproef):
+ 
+```{r, eval = FALSE, message=FALSE, warning=FALSE}
+chisq.test(df$frequentie, p=c(1/16, 3/16, 3/16,  9/16))
+```
+
+Als argumenten zijn de gevonden frequentie en de verwachte kansverdeling (als een vector) gegeven.
+
+Hieronder staat de uitkomst:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+chisq.test(df$frequentie, p=c(1/16, 3/16, 3/16,  9/16))
+```
+X-squared staat voor de Chi-kwadraatwaarde, df voor het aantal vrijheidsgraden en p-value voor de overschrijdingskans onder de H~0~.
+
+In dit geval is $p>0.05$, dus we verwerpen de H~0~ niet (met $\alpha=0.05$).
+We kunnen dus niet de aanname van Mendeliaanse overerving verwerpen.
+Of met andere woorden: de gevonden frequentie is niet significant afwijkend van de voorspelde frequentie volgens Mendeliaanse overerving.
+
+NB: de kansverdeling over de verschillende categoriën (argument **p** in de functie) moet bij elkaar opgeteld precies 1 zijn.
+Dat kan simpel met de volgende code `p=df$verwach/sum(df$verwacht)`.
+Alternatief is om als extra argument `rescale.p = TRUE` te gebruiken.
+Dan berekent R automatisch de kansverdeling.
+
+```{exercise, plantenkwekers}
+Enquête plantenkwekers:
+
+In 2008 teelde 33% van de Nederlandse snijbloementelers als hoofdproduct roos, 29% chrysant, 25% tulp, de overige 13% andere soorten. 
+In 2008 werd een enquête gehouden onder 200 Nederlandse snijbloementelers.
+Daarvan teelden er 70 roos als hoofdgewas, 52 chrysant, 49 tulp, en de overige 29 andere soorten:
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+df <- data.frame(Hoofdgewas = c("Roos", "Chysant", "Tulp", "Overig"),
+                 Aantal = c(70, 49, 52, 29),
+                 Percentage = c(33, 29, 25, 13))
+knitr::kable(df, col.names = c("Hoofdgewas",
+                               "Aantal telers in enquête",
+                               "Percentage kwekers"))
+```
+
+De vraag is of de enquête representatief is voor de Nederlandse telers (met andere woorden de respondenten volgen dezelfde verdeling als de verdeling van kwekers in Nederland over de verschillende hoofdgewassen).
+
+* Beschrijf de H~0~ en de H~1~.
+* Test of aan de regel van Cochran wordt voldaan.
+* Voer een Chi-kwadraattoets uit (voer data direct in in R, of maak eerst een Excelbestand).
+* Wat is je conclusie
+
+
+##Poisonverdeling
+Met een Chi-kwadraattoets test je de gevonden frequentieverdeling ten opzichte van een theoretische verdeling.
+Een veel voorkomende verdeling is de Poisonverdeling.
+Deze verdeling is vernoemd naar [Siméon Poisson](https://nl.wikipedia.org/wiki/Sim%C3%A9on_Poisson).
+
+Net als de binomiale verdeling gaat het hier om discrete data.
+Het geeft ook de kans op x-aantal voorvallen.
+Het verschil met de binomiale verdeling is dat je niet uitgaat van een bepaald aantal herhalingen (zoals de voorbeelden met een dobbelsteen), maar uitgaat van een *richting* oneindig aantal herhalingen (n) met een *richting* oneindig kleine kans (p) waarbij $n*p=\lambda$.
+Het teken $\lambda$ (de Griekse letter *Lambda*) staat voor het gemiddelde aantal voorvallen.
+
+Klinkt ingewikkeld?
+Bekijk het voorbeeld (met figuren!) van de rekolonisatie door spinnen in het boek aandachten.
+
+Gelukkig heeft R een simpele functie om de kansverdeling uit te rekenen.
+Als voorbeeld *example 8.6* uit het boek:
+
+* Sterven organismen random uit in de geschiedenis van het leven?
+
+Raup en Sepkoski (1982) hebben data verzameld van mariene invertebraten en per tijdsblok aangegeven hoeveel families er uitstierven:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(readxl)
+library(tidyverse)
+df <- read_excel("../data/uitsterven.xlsx")
+df %>% select(-categorie) %>% 
+  knitr::kable()
+```
+
+De vraag is nu of uitsterven gezien kan worden als random proces in de tijd, of dat er juist momenten zijn waarbij relatief veel dieren uitsterven (massa-extincties).
+
+De H~0~ is dat uitsterven een random proces is, dus een Poissonverdeling volgt.
+De H~1~ is dat uitsterven niet de Poissonverdeling volgt.
+
+In R kunnen we gemakkelijk de verwachte waarden per tijdsvak uitrekenen als de H~0~ waar is.
+
+De eerste stap is het gemiddeld aantal uitstervingen per tijdsvak te berekenen ($\lambda$  in de functie voor de Poissonverdeling).
+Bovenstaande tabel is een frequentietabel, in dertien tijdsvakken is bijvoorbeeld 1 mariene invertebraatgroep uitgestorven.
+Om het gemiddelde per tijdsvak te berekenen moeten we iedere regel net zo vaak meetellen als de frequentie aangeeft.
+Dat noem je een gewogen gemiddelde:
+
+```{r, echo = TRUE}
+lambda <- weighted.mean(df$aantal_uitstervingen, df$frequentie)
+lambda
+```
+
+Met deze waarde kunnen we verwachte frequentie voor ieder aantal uitstervingen per tijdvak berekenen:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+df$verwacht <- dpois(df$aantal_uitstervingen, lambda = lambda)*sum(df$frequentie)
+```
+
+Met `dpois()` bereken je de dichtheid voor ieder aantal.
+Als je dat vermenigvuldigt met het totale aantal tijdvakken (de som van de frequenties) dan krijg je de verwachte verdeling van aantal uitstervingen over het totaal aantal tijdblokken (76 in dit geval).
+
+Nu kunnen we de daadwerkelijke en de verwachte verdeling weergeven in een grafiek:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+theme_set(theme_classic())
+
+df %>% 
+  ggplot(aes(x=aantal_uitstervingen)) +
+  geom_col(aes(y=verwacht, 
+           fill = "verwacht")) +
+  geom_col(aes(y=frequentie,
+           fill = "gemeten"), width = 0.2) +
+  scale_fill_manual(name = "", values = c("verwacht" = "lightblue",
+                                          "gemeten" = "black")) +
+  theme_classic(base_size = 15) +
+  xlab("aantal uitstervingen per periode") +
+  ylab("frequentie") +
+  theme(legend.position = (c(0.8, 0.8)))
+  
+```
+
+Je kan in de grafiek al zien dat de werkelijke verdeling anders loopt dan de Poissonverdeling.
+Hoe waarschijnlijk is het nu om minstens zo'n afwijking t.o.v. de Poissonverdeling te vinden als H~0~ klopt?
+
+We hebben nu een gevonden  en een verwachte frequentievedeling, dus kunnen we daar een Chi-kwadraattoets op loslaten.
+
+Eerst de regel van Cochran toepassen:
+
+* E~i~< 1?
+* Aantal E~i~ < 5 > 20% van E~i~'s?
+
+Elf cellen hebben een verwachte frequentie kleiner dan 1, en 15 cellen een verwachte frequentie kleiner dan 5 (dat is meer dan 20% van 21 cellen).
+Dus we kunnen de Chi-kwadraattoets niet toepassen.
+
+###Optie 1: categoriën samenvoegen
+In het boek passen ze optie 1 toe: categorieën samenvoegen.
+Je krijgt dan de volgende verdeling:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+df_cat <- df %>% 
+  group_by(categorie) %>% 
+  summarise(frequentie=sum(frequentie), verwacht = sum(verwacht))
+
+knitr::kable(df_cat)
+
+```
+
+Bijbehorende Chi-kwadraattoets:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+chisq.test(df_cat$frequentie, p=df_cat$verwacht, rescale.p = TRUE)
+```
+
+NB: bovenstaande output is een fractie anders dan de uitwerking in het boek.
+De reden is dat de verwachte frequenties berekend zijn op basis van het geschatte gemiddelde aantal uitstervingen per tijdvak.
+Hiermee snoep je een vrijheidsgraad op.
+Wil je het helemaal netjes aanpakken, dan moet je handmatig aangeven hoeveel vrijheidsgraden de Chikwadraatverdeling heeft onder de H~0~:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+fit <- chisq.test(df_cat$frequentie, p=df_cat$verwacht, rescale.p = TRUE)
+pchisq(fit$statistic, df=6, lower.tail = FALSE)
+
+```
+
+
+###Optie twee: simuleren
+Optie twee is de verdeling onder de H~0~ te simuleren.
+Dat kan met dezelfde functie `chisq.test()`, met als extra argument `simulate.p.value = TRUE`:
+
+```{r}
+chisq.test(df$frequentie, p=df$verwacht, 
+           rescale.p = TRUE,simulate.p.value = TRUE)
+```
+
+
+```{exercise extinction}
+Uitsterven
+
+* Downdload de data van BB ("uitsterven.xlsx").
+* Voer de Chi-kwadraattoets uit op de orinele data (wetende dat het niet voldoet aan de regel van Cochran).
+* Voer nu de toets uit waarbij de de kansverdeling onder de H~0~ gesimuleerd wordt.
+* Vergelijk de gevonden p-waarden. Neemt de fout van de eerste soort toe of af? Leg uit.
+
+```
+
+##Chikwadraattoets op onafhankelijkheid
+Zoals je in *section* 9.4 van het boek kan lezen, kan je de Chikwadraattoets ook gebruiken als je wilt testen of twee nominale variabele afhankelijk van elkaar zijn.
+Met andere woorden: heeft categorie van de ene variabele effect op frequentieverdeling over de categorieën van de andere variabele.
+
+Als voorbeeld *Example* 9.4 uit het boek.
+Onderzoekers hebben het vermoeden dat vissen die geïnfecteerd zijn door een parasitaire worm een grotere kans hebben om gegeten te worden door reigers omdat ze vaker aan het oppervlak zwemmen.
+Lafferty en Morris (1996) testten deze hypothese door vissen met drie niveaus van infectiegraad in een groot bassin te laten zwemmen, en te tellen hoeveel van welke groep gepredeerd werd:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+df <- data.frame(gegeten = rep(c("niet gegeten", "wel gegeten"), each = 3),
+                 infectiegraad = rep(c("niet", "licht", "zwaar"), 2),
+                 frequentie = c(1, 10, 37, 49, 35, 9))
+knitr::kable(df)
+
+
+```
+
+Bovenstaande manier is een goede manier om de data uit *Table* 9.4-1 in bijv. Excel te zetten.
+
+De volgende hypotheses worden getest met de Chikwadraattoets op onafhankelijkheid:
+
+* H~0~: Infectiegraad en gegeten worden zijn onafhankelijk
+* H~1~: Infectiegraad en gegeten worden zijn niet onafhankelijk
+
+De Chikwadraattoets op onafhankelijkheid kan op verschillende manieren data verwerken:
+
+* als `table()` output (heb je gezien bij de krekeldata in jaar 1)
+* als 'lange' tabel met op iedere regel een waarneming (je hebt dan 141 regels!)
+* als matrix (gaan we hier niet doen)
+
+Voor de eerste twee methoden moet je eerst de tabel 'lang' maken.
+Daar is in tidyverse een simpele functie voor `uncount()`:
+
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse)
+df_lang <- df %>% 
+  uncount(frequentie)
+```
+
+Dan kan je de de Chikwadraattoets op onafhankelijkheid uitvoeren:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+chisq.test(df_lang$gegeten, df_lang$infectiegraad)
+
+```
+
+In principe kan je deze toets ook uitvoeren als je meer dan twee nominale variabelen hebt. 
+
+
+##Extra opgaven
+Gebruik bij onderstaande opgaven uit het boek R.
+Ga dus niet zelf met de hand de Chikwadraatwwaarde uitrekenen, en overschrijdingskans opzoeken in een tabel.
+Daar hebben we tegenwoordig computers voor!
+
+
+```{exercise, chiboek}
+*Practise problems*
+
+Maak de volgende *Practise problems chapter 8 (vanaf blz. 225):
+
+* 1, 2, 3 
+
+Maak de volgende *Practise problems chapter 9 (vanaf blz. 258):
+
+* 2, 7
+```

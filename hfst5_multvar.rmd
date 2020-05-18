@@ -1,0 +1,93 @@
+#MANOVA
+
+Multivariate variantieanalyse (MANOVA) is een uitbreiding van de ANOVA's die je eerder hebt geleerd.
+Het kan toegepast worden in het geval dat er twee of meer responsvariabelen zijn.
+
+Een MANOVA is een scherpere toets dan een serie one-way ANOVA's vanwege de volgende redenen:
+
+* houdt rekening met onderlinge samenhang tussen responsvariabelen
+* onderzoekt of er tussen subgroepen (van verklarende variabelen) significante verschillen bestaan in gezamenlijke gemiddelden van de combinatie van de responsvariabelen
+
+Er wordt, net als in een gewone ANOVA, een statistisch model geschat en een *test statistic*  uitgerekend (meestal **Pillai's trace**) en met een F-toets getest of deze afwijkt van de nulhypothese.
+
+
+Voorbeeld: Fruitvliegjes
+De vraag is of twee soorten fruitvliegjes van elkaar verschillen in een aantal kenmerken:
+
+* lengte borststuk
+* lengte vleugels
+* lengte dijbeen
+* lengte antenne
+* oogomvang
+
+
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(readxl)
+
+df <- read_excel("../data/fruitvliegjes.xlsx")
+knitr::kable(df)
+```
+
+Wat zijn nu mogelijke hypotheses die je kan testen?
+
+* Is er significant verschil in lengte vleugels, lengte borststuk, enz. tussen de twee soorten (hoofdeffect)?
+* Is er significant verschil in lengte vleugels, lengte borstuk, enz., tussen de geslachten (hoofdeffect)?
+* Verschilt het effect van geslacht per soort (interactie-effect)?
+
+Welke nulhypothese hoort hier bij?
+
+* De gemiddelden van de responsvariabelen zijn voor alle subgroepen gelijk.
+
+##MANOVA in R
+Hoe voer je nu een MANOVA uit in R?
+Je hebt daarvoor de functie `manova()` waar je, net als in een `lm()` een statistisch model invoert.
+Nu heb je meerdere responsvariabelen.
+Die moet je samenvoegen met de functie `cbind()`.
+Zie hieronder voor de code:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+fit <- manova(cbind(df$borststuk, 
+             df$lengtevleugel, 
+             df$lengtedijbeen,
+             df$oogomvang,
+             df$antenne) ~ df$soort*df$geslacht
+      )
+summary(fit)
+
+```
+
+Zoals te zien is er een significant verschil tussen de twee soorten, tussen geslacht en is er een interactie tussen geslacht en soort (sommige eigenschappen, of combi's van eigenschappen zijn bij de ene soort anders tussen de geslachten dan bij de andere soort).
+
+
+##Posthoc
+In voorgaand voorbeeld hadden de verklarende variabelen ieder maar twee niveau's, dus is een posthoctoets niet nodig om te bepalen welke categorieën significant van elkaar verschillen.
+
+Heb je dat wel, dan kan je gewoon weer een posthoctoets uitvoeren:
+
+```{r, eval = FALSE}
+library(emmeans)
+
+emmeans(fit, list(pairwise ~ var1), adjust = "tukey")
+
+```
+
+Net als bij een gewone ANOVA geldt dat je alleen tukey mag gebruiken als de groepen ongeveer even groot zijn.
+Is dat niet zo, moet je bonferroni gebruiken.
+
+##Oefeningen
+
+```{exercise, poelen}
+Poelen.
+
+Een groepje studenten onderzoeken voor hun jaarproject drie poelen in de buurt van Venlo en ze willen kijken of er verschillen zijn in de hoeveelheid van verschillende vormen stikstof. Daarvoor nemen ze per poel vijf monsters en per monster bepalen ze het gehalte nitriet, nitraat en ammonium. 
+
+* Download de file poelen.xlsx van BB
+* Importeer en bekijk de dataset. Waarom is een MANOVA hier geschikt om de data te analyseren?
+* Voer een manova uit om te toetsen of er verschillen zijn tussen de drie poelen. 
+* Als er een significant verschil is, voer dan een posthoctoets uit.
+
+```
+
+

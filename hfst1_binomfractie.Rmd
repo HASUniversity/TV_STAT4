@@ -1,0 +1,215 @@
+#Binomiale verdeling: toets op fractie
+
+```{block2, type='ABD'}
+Lees chapter 7 (*Analysing proportions*)
+```
+
+De binomiale verdeling werd al in de 17^de^ eeuw uitgebreid onderzocht.
+In die tijd was het spel kop-en-munt razend populair.
+Je moest gokken, van een x-aantal munten, hoeveel kop of munt je zou krijgen.
+Doe je dat spelletje met één munt, dan is het niet zo moeilijk.
+De kans op kop of munt is gelijk (tenminste bij een "eerlijke" munt).
+
+Voor een grotere serie, moet je gaan rekenen.
+Doe je dit voor n=2, dan zijn dit de opties:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::kable(data.frame(munt1 = c("munt", "munt", "kop", "kop"), 
+           munt2 = c("munt", "kop", "munt", "kop"),
+           aantal_kop = c(0, 1, 1, 2)))
+```
+
+Kans op 0x kop = 1/4, kans op 1x kop = 2/4 en kans op 2x kop = 1/4.
+
+Bij grotere n is dat aardig wat rekenwerk.
+Gelukkig heeft R daar een functie voor.
+Als voorbeeld de kans dat je 2x kop hebt bij een serie van 2 muntjes:
+
+```{r}
+dbinom(x=2, size = 2, prob = 0.5)
+```
+
+```{exercise, kop-of-munt}
+Bereken de volgende kansen:
+
+* 1 keer kop bij n=2
+* 4 keer kop bij n=8
+* 8 keer kop bij n=16
+
+Bedenk waarom de kans afneemt?
+
+```
+
+
+##Betrouwbaarheidsinterval
+In het geval van kop-en-munt weet je (ongeveer) de theoretische kans (*probability*), je gaat er vanuit dat die 0,5.
+De kans wordt weergegeven met de letter **p** (niet te verwarren met hetzelfde symbool voor de overschrijdingskans van onder de H~0~-hypothese).
+Meestal wordt er gesproken van kans op **succes**, waarbij je zelf aangeeft welke van de twee waardes je succes noemt (kop of munt). 
+
+Vaak weet je **p** niet, en schat je die vanuit een steekproef, weergegeven met $\hat{p}$.
+
+Net als bij de normale verdeling, kan je het betrouwbaarheidsinterval berekenen van je schatter.
+Bij de normale verdeling gaat het vaak om het gemiddelde, bij de binomiale data gaat het om $\hat{p}$.
+
+Ook hier geldt weer dat de schatting alleen betrouwbaar is als de daadwerkelijke verdeling de regels van je theoretische verdeling volgt.
+Voor de binomiale verdeling geldt:
+
+* Het aantal steekproeven (n) staat vast (dus bijv. 10x kop-of-munt)
+* De steekproeven zijn onafhankelijk van elkaar
+* De kans op succes (p) is gelijk voor iedere steekproef
+
+Wanneer we ervan uit kunnen gaan dat de verdeling aan bovenstaande voorwaarden voldoet, kunnen we een betrouwbaarheidsinterval uitrekenen.
+
+Hoe doe je dat in R?
+
+```{r, eval = FALSE}
+library(Hmisc)
+binconf(x, n, alpha=0.05)
+```
+
+waarbij x het aantal successen is, en n het aantal steekproeven.
+In het geval van voorbeel 7.3 uit het boek:
+
+```{r, message=FALSE, warning=FALSE}
+library(Hmisc)
+binconf(x=30, n=87, alpha=0.05)
+```
+
+Zoals je ziet is `binconf()` een functie uit de package Hmisc.
+
+```{exercise, Hmisc}
+Package Hmisc
+
+* installeer de package Hmisc
+
+```
+
+
+
+```{exercise, dobbelsteen1}
+Betrouwbare dobbelsteen
+
+Stel, je werpt 20 keer met een dobbelsteen en gooit 0 keer 6.
+
+* Bereken het betrouwbaarheidsinterval van de kans op 6 op basis van bovenstaande steekproef.
+* Verwacht je dat de dobbelsteen "zuiver" is (kans op iedere waarde is gelijk)?
+
+
+```
+
+
+
+##De binomiale toets
+Je kan ook testen of de gevonden $\hat{p}$ afwijkt van een theoretische waarde.
+In het geval van de vorige opgave, over de dobbelsteen, kan je testen of p< 1/6:
+
+```{r}
+binom.test(0, 20, p=1/6, alternative = "less")
+```
+
+De functie `binom.test()` berekent de **exacte** kans op het voorkomen van de gegeven, of meer extremere uitkomst bij een bepaalde p (in dit geval 1/6).
+Net als bij de t-toets kan je aangeven of je eenzijdig, danwel tweezijdig wilt toetsen.
+
+De hypotheses die bij bovenstaande code horen zijn:
+
+* H~0~: $p = 1/6$ of, meer formeel, $p \geq 1/6$ 
+* H~1~: $p < 1/6$
+
+**NB**: de binomiale test geeft ook een betrouwbaarheidsinterval, maar deze is gebaseerd op de F-verdeling (bij grote steekproeven volgt een binomiale verdeling min of meer een normale verdeling).
+Zoals je kan lezen in het boek, kan je beter een andere methode gebruiken: de Agresti-Coull-methode ("Wilson interval").
+Dat is de standaardmethode in d functie `binconf()`.
+
+
+```{exercise, dobbelsteen2}
+Dobbelsteen
+
+Je gooit met een dobbelsteen 6 keer, en je gooit telkens 4.
+Je wilt testen of de dobbelsteen afwijkt t.o.v. een zuivere dobbelsteen.
+
+* Geef de hypotheses
+* Bereken de overschrijdingskans.
+
+```
+
+##Verschiltoets voor fracties
+Soms wil je een fractie niet testen ten opzichte van een theoretische waarde, maar juist met een andere steekproef.
+
+Stel dat je de kans op 6 voor twee dobbelstenen wilt vergelijken. Je vermoedt dat ze verschillen van elkaar.
+Met de ene dobbelsteen gooi je 100 keer, en je krijgt 12x zes, en met de andere dobbelsteen gooi je 80 keer en je krijgt 20x zes.
+Je hypotheses zijn:
+
+* H~0~: $p_{1} \neq p_{2}$
+* H~1~: $p_{1} = p_{2}$ 
+
+Met de volgende functie test dit in R:
+
+```{r, message=FALSE, warning=FALSE}
+succes = c(12, 20, 5)
+n = c(100, 80, 60)
+prop.test(succes, n)
+
+```
+
+De functie `prop.test()` heeft als input een vector met de aantallen succes voor de verschillende objecten (je kan de toets met meer dan twee groepen uitvoeren ).
+Als toets wordt een chi-kwadraattoets uitgevoerd.
+Daarover leer je meer in hoofdstuk 2.
+
+
+##Opgaven
+Gebruik voor de volgende opgaven R.
+
+In het boek wordt ervan uitgegaan dat je per mogelijke uitkomst (bijvoorbeeld 5 resistente stammen in opgave 1) de kans berekent met je rekenmachine.
+Dat kan natuurlijk gemakkelijker in R.
+Met de functie `dbinom(x, n, prob)` kan je de exacte kans berekenen.
+In het geval van opgave 1c: `dbinom(x=5, n=7, prob=0.3)`, of nog korter: `dbinom(5, 7, 0.3)`.
+
+Maar als je de kans op minstens of maximaal x successen wilt berekenen, dan kan dat natuurlijk ook met `binom.test()`.
+Voor opgave 1e krijg je dan: `binom.test(x=5, n=7, p=0.3, alternative="greater")`.
+
+Wordt er gevraagd naar een confidence interval via de Agresti-Coull-methode: R doet dat automatisch met de functie `binconf()`.
+
+
+
+
+```{exercise, PP07}
+Practise Problems, chapter 7
+
+Los de volgende Practise problems op:
+
+* 1 t/m 4.
+* 6 t/m 9
+```
+
+```{exercise, verschiltoetsfrac}
+Zaadbehandeling
+
+In een onderzoek worden 120 ontkiemde zaden behandeld met 18 uur donker / 6 uur licht (behandeling A) en 80 ontkiemde zaden met 12 uur licht / 12 uur donker (behandeling B).
+Na precies 2 weken werd er gekeken hoeveel zaden volledig tot groei gekomen waren.
+Bij behandeling A waren dat er 92 van de 120 en bij behandeling B waren dat er 48 van de 80.
+
+* Toets met $\alpha = 0,05$ de hypothese dat behandeling A beter werkt dan behandeling B.
+
+```
+
+
+```{exercise, medicijn}
+Medicijn
+
+```
+
+Een fabrikant beweert dat zijn medicijn (A) in 70% van de behandelingen bij paarden effectief is.
+Een onderzoeker vergelijkt A met een andere medicijn (B) en vindt de volgende resultaten:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::kable(data.frame(medicijn = c("A", "B"),
+                        effectief = c(19, 19),
+                        niet_effectief =c(11, 6)),
+             col.names = c("Soort medicijn",
+                           "wel effectief",
+                           "niet effectief"))
+```
+
+De onderzoeker meent dat de door de fabrikant aangegeven percentage van 70% te hoog is.
+
+* Is dit op basis van bovenstaande steekproef met een zekerheid van 95% te beweren? Formuleer de hypothese en voer een toets uit en eindig met een duidelijke conclusie
+* Toets met een foutmarge van $\alpha =0,05$ de bewering dat medicijn B beter werkt dan 

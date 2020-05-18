@@ -1,0 +1,43 @@
+#Clusteranalyse
+
+```{block2, type='ABD'}
+
+
+```
+
+we leven in het 'big data'-tijdperk.
+Iedereen (op een enkele fanatiekeling na) die regelmatig gebruik maakt van internet draagt zijn steentje bij aan de informatieberg.
+Deze informatie wordt gebruikt om "profielen" aan te maken.
+Daarmee krijgen we gepersonificeerde reclame, nieuwsberichten, zoekresultaten, etc.
+Hiervoor is statistiek nodig: multivariate analyses.
+
+Multivariaat slaat op het aantal **respons**variabelen.
+Tot nu toe hadden we te maken met één responsvariabele waarvan we de variatie wilden verklaren aan de hand van een of meerdere **verklarende** variabelen.
+Nu hebben we te maken met meerdere (soms wel duizenden) responsvariabelen (bijv. hoe vaak je bepaalde websites gezocht hebt, of bepaalde zoektermen voorkwamen in je zoekopdrachten).
+Vandaar de term **multi**variaat.
+
+Binnen de ecologie wordt al lang met multivariate data gewerkt, vooral binnen de vegetatiekunde.
+De responsvariabelen zijn dan de abundantie van de verschillende plantensoorten per plot.
+Een onderzoeksvraag kan zijn welke plots op elkaar lijken en welke van elkaar verschillen.
+
+Met de opkomst van *metagenomics* hebben we niet alleen voor planten, maar ook voor andere organismen (vooral microbiologie) enorme datasets met multivariate data.
+
+Deze week en volgende week gaan jullie aan de slag met multivariate data.
+We behandelen twee technieken:
+
+* Clustering (deze les)
+* MANOVA (volgende les)
+
+Clustering is, zoals de naam al zegt, het clusteren van multivariate data.
+MANOVA staat voor *Multivariate Analysis of Variance*, een soort van ANOVA met meerdere responsvariabelen.
+
+> NB De bijbehorende powerpoint is tentamenstof.
+De volgende paragrafen over clustering is in ontwikkeling, en geen tentamenstof (maar natuurlijk wel heel interessant!).
+
+## Twee manieren van clusteren
+Jullie zijn met het vak biotechnologie al een vorm van clusteren tegengekomen: de fylogenetische boom (**fylogram**), een voorbeeld van een **dendrogram**.
+Deze manier van clusteren wordt **hierarchisch** genoemd.
+
+Een andere manier van clusteren 
+
+

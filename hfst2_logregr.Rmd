@@ -1,0 +1,312 @@
+#Logistische regressie
+
+```{block2, type='ABD'}
+
+* Lees paragraph 9.2 (*Estimating*)
+* Lees paragraph 17.9 (*Logistic regression: fitting a binary response variable*)
+
+```
+
+In het vorige hoofdstuk heb je kennis gemaakt met binaire data (dood/levend, etc.).
+Je kan deze kans beschrijven als een kansproces met de kans p op "succes".
+Je hebt al geleerd om te bepalen wat het betrouwbaarheidsinterval is van de geschatte p uit een steekproef en of de p van twee steekproeven significant van elkaar verschillen.
+
+Maar er zijn meer onderzoeksvragen mogelijk.
+Ter illustratie een voorbeeld over tomaten:
+
+Een tomatenteler onderzoekt of de tomatenoogst eerder kan, zonder dat de tomaten onrijp worden geoogst.
+Het volgende experiment wordt uitgevoerd:
+
+* Bij zes planten worden de tomaten 10 dagen eerder dan normaal geoogst.
+* Bij vier andere planten worden de tomaten 5 dagen eerder geoogst.
+* Bij zes planten worden de tomaten op de standaardtijd geoogst.
+
+Vervolgens wordt gekeken hoeveel van de geplukte tomaten, per tijdstip, rijp zijn:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+library(readxl)
+library(tidyverse)
+theme_set(theme_classic())
+
+tomaat <- read_excel('../data/tomaten.xlsx')
+knitr::kable(table(tomaat$tijd, tomaat$rijp))
+
+
+```
+
+Zulke data kan je mooi presenteren in een mozaiekplot (In het Engels *mosaic plot* geheten):
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+library(ggmosaic)
+
+tomaat %>% 
+  ggplot() +
+  geom_mosaic(aes(x=product(tijd), fill = rijp)) +
+  scale_fill_manual(values = c("green", "red")) +
+  xlab("tijd (dagen voor oogstijd)") +
+  ylab("fractie rijp") +
+  theme(legend.position = "none")
+
+```
+
+Kenmerk van een mozaiekplot is dat op de y-as en x-as af te lezen welke fractie in welke categorie gevonden is. Zie ook in het boek blz. 40-41. 
+Voor het creëren van zulke plots heb je de package **ggmosaic** nodig.
+NB: de variabele voor de x-as moet opgegeven worden als `product(variabele)`.
+
+De code voor bovenstaande figuur heeft wel wat extra code om de figuur op te leuken:
+
+* `scale_fill_manual(values = c("green", "red")) +`: handmatig kleuren kiezen 
+* `xlab("tijd (dagen voor oogstijd)") +`: label voor x-as definiëren
+* `ylab("fractie rijp") +`: label voor y-as definiëren
+* `theme(legend.position = "none")`: legenda niet laten zien
+
+
+```{exercise, ggmosaic}
+ggmosaic
+
+* Installeer de package ggmosiac
+* Maak van je krekeldata een mozaiekplot (weliswaar geen bonomiale data, maar mozaiekplot werkt ook voor zulke data)
+
+```
+
+In de volgende paragrafen gaan we hypothesetoetsen voor binomiale data uitvoeren.
+
+##Generalized Linear Model
+De responsdata is nu binomiaal verdeeld, dus je kan geen gewoon *General Linear Model* toepassen.
+Daarvoor in de plaats gebruiken we het *Generalized Linear Model*, met de functie in R: `glm()`.
+
+Verschil met de functie `lm()` is dat je nu kan aangeven wat voor soort data je hebt.
+In dit geval hebben we te maken met binomiale data:
+
+```{r, eval = FALSE}
+glm(respons~verklarende, family = binomial())
+```
+
+Met deze informatie zet de glm de responsveriabele om naar **log-odds**, dat is een alternatieve manier om kans weer te geven:
+
+
+
+$$\log{\frac{p}{1-p}}$$
+
+De fractie $\frac{p}{1-p}$ wordt de **odd** genoemd en komt misschien raar over, maar is iets wat jullie waarschijnlijk allemaal ooit hebben gebruikt: "die kans is fifty-fifty" of "tien tegen een".
+
+```{exercise}
+Odd
+
+* Welke odd-waarde heeft de kans "fifty-fifty is"?
+* Welke odd-waarde heeft een kans van tien tegen een?
+* Welke odd-waarde heeft rijpheid van tomaten bij 10 dagen voor oogsttijd?
+
+```
+
+
+##ANOVA met binomiale data
+
+Stel, we willen testen of tijdstip van oogsten echt een effect heeft op de rijpheid, dan krijgen we de volgende hypotheses:
+
+* H~0~: alle tijdstippen hebben gelijke kans op rijpheid
+* H~1~: minstens een verschil in kans op rijpheid tussen tijdstippen
+
+Dat klinkt als een *one-way ANOVA*, maar dan met binomiale data.
+En dat is het ook.
+Om het *generalized linear model* uit te voeren, moet de responsvariabele in de vorm 0 of 1 zijn.
+In dit geval zijn het twee categoriën in de vorm van tekst ("rijp" en "onrijp").
+Om die om te zetten gebruiken we de functien`recode()`:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+tomaat_num <- tomaat %>% 
+  mutate(rijp = recode(rijp, "onrijp" = 0, "rijp" = 1))
+```
+
+Met de functie `mutate()` definieer je een nieuwe variabele (in dit geval weer rijp genoemd).
+Met `recode()` zet je de variabele rijp om van tekst naar 0-en en 1-en.
+En natuurlijk uitgevoerd in een *pipeline*.
+
+Volgende stap is om het *generalized linear model* uit te voeren:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+fit <- glm(rijp~factor(tijd), family = binomial(), data = tomaat_num)
+
+```
+
+En vervolgens een soort van ANOVA-tabel, dat doen we nu met de functie `Anova()` uit de package car:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+library(car)
+Anova(fit)
+```
+
+In deze tabel staat de overschrijdingskans van de verklarende variabele(n), in dit geval uitgerekend met een Chi-kwadraattoets i.p.v. een F-toets (omdat we categoriedata hebben).
+Chikwadraattoets komt in volgend hoofdstuk aan de orde.
+
+Je kan ook de functie `summary()` gebruiken, die de geschatte waarden voor ieder niveau geeft (in log-odds uitgedrukt):
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+summary(fit)
+```
+
+Net als bij een gewone ANOVA kan je hier ook een posthoc-toets uitvoeren.
+Dat doen we met de functie `emmeans()` uit de package emmeans:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+library(emmeans)
+pairs(emmeans(fit, "tijd"), adjust = "tukey")
+
+```
+
+Wil je alleen vergelijken met een controlebehandeling (bijv. om te kijken welk tijdstip significant afwijkt van normale oogsttijd):
+
+```{r}
+emmeans(fit, specs = trt.vs.ctrlk ~ tijd)
+```
+
+De optie `trt.vs.ctrlk` van het argument `specs` geeft aan dat de laatste (op basis van de factorvolgorde die R aanhoudt) categorie gebruikt wordt als controle.
+Is de eerste controle, dan gebruik je `trt.vs.ctrl`.
+Als de controle halverwege de rij zit, gebruik  `trt.vs.ctrlk` en voeg het argument `ref = 2` (met 2 de plek waar je controle staat).
+Het simpelst is om met behulp van `levels` de volgorde van je categoriën aan te geven, en de controle voor of achteraan te zetten.
+Dat is ook mooier in grafieken.
+
+Hoe je dat ook alweer doet:
+
+```{r, eval = FALSE}
+tomaat %>%
+  mutate(tijd = factor(tijd, levels = c(0, -5, -10)))
+```
+
+
+```{exercise, insecticiden}
+Insecticiden.
+
+Een derdejaarstudent Toegepast Biologie loopt stage bij een kweker en moet vijf verschillende insecticiden testen.
+Daarvoor doet hij het volgende experiment: per insecticide stelt hij een aantal vliegen bloot aan deze insecticide en een uur later noteert hij hoeveel vliegen nog in leven zijn.
+Daarnaast is er een controlegroep die geen insecticide krijgt.
+
+* Download de dataset van BB ("insecticiden.xlsx")
+* Waarom zou je op deze dataset geen *survival analysis* op loslaten?
+* Test welke insectide significant meer vliegen dood dan de controle.
+* Welk insecticide doodt de meeste vliegen?
+
+```
+
+
+##Regressie met binomiale data
+
+We kunnen de tomatendata ook op de volgende manier presenteren:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+tomaat %>% 
+  ggplot(aes(tijd, rijp, color = rijp)) + 
+  geom_jitter(height = 0.1, width = 0.1) +
+  scale_color_manual(values = c("green", "red")) +
+  theme(legend.position = "none")
+```
+
+
+Voor de duidelijkheid zijn de individuele punten iets verspreid weergegeven (via `geom_jitter()`).
+Met wat toevoegingen (`color = rijp`, `scale_color_manual(values = c("green", "red"))`) zijn de rijpe waarden rood en onrijpe waarden weer groen.
+
+Nu hebben we op de x-as geen categoriën, maar een continue schaal.
+Zouden we nu iets met een regressie kunnen doen?
+Het antwoord is ja.
+
+Met hetzelfde *generalized linear model*  kunnen we ook regressies uitvoeren:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+fit2 <- glm(rijp ~ tijd, family = binomial(), data = tomaat_num)
+```
+
+Het enige verschil met de vorige analyse is dat we van de variabele tijd **geen** factor maken.
+
+Kijken wat de uitkomst is met de functie `Anova()`:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+Anova(fit2)
+
+```
+
+Fractie rijpe vruchten lijkt dus inderdaad te veranderen met de tijdstip van plukken.
+
+Met de functie `summary()` krijg je de geschatte parameters van het statistisch model te zien:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+summary(fit2)
+```
+
+Het model is een rechte lijn die de y-as (die de **log-odd-waarde** aangeef!) snijdt op 2,0416 en een richtingscoëfficiënt heeft van 0.3316.
+
+Voor de tomatenteler is het van belang vanaf welk tijdstip het waarschijnlijk is dat een minimale fractie tomaten (zeg 25% rijp is).
+Daarvoor hebben we het betrouwbaarheidsinterval nodig.
+
+Met ggplot kunnen we gemakkelijk het betrouwbaarheidsinterval plotten, en tegelijkertijd de minimale fractie rijpheid aangeven:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+tomaat_num %>% 
+  ggplot(aes(tijd, rijp)) + 
+  geom_point(alpha=0.2, size = 2) +
+  geom_smooth(method=glm, method.args = list(family = binomial())) +
+  ylab("Fractie rijp") +
+  geom_hline(yintercept = 0.25, color = "blue", linetype = "dashed")
+  theme(legend.position = "none") 
+```
+
+Je ziet nu de typische S-vorm van een logistisch regressie.
+Bij vijf dagen eerder oogsten zit de teler dus nog veilig.
+
+```{exercise, guppies}
+Guppies
+
+Pitkow *et al.* (1960) onderzocht het effect van tijdsduur blootstelling aan lage temperatuur op de overleving van guppies.
+Hij stelde steeds 40 guppies bloot aan water van 5°C, voor 3, 8, 12 of 18 minuten.
+
+* Download de data van BB (guppies.xlsx)
+* Zet de data uit in een grafiek.
+* Voer een logistische regressie uit.
+* Wat zijn je conclusies?
+
+```
+
+
+##LT50
+
+De afkorting LT50 is een begrip uit de toxicologie en staat voor de "mediaan letale tijd" (tijd tot aan de dood).
+Wat breder geïnterpreteerd staat het voor de waarde van de verklarende factor waarbij de kans op succes 0,5 is.
+
+In principe kan je met behulp van de *estimates* van het logistisch model uitrekenen bij welke waarde je LT50 bereikt, maar er is (natuurlijk) een gemakkelijke functie voor: `dose.p()`.
+
+Deze functie zit in de package MASS.
+Nu is het punt met **MASS** dat er een paar functies in zitten met dezelfde naam als functies in de package **tidyverse**.
+Om te voorkomen dat deze functies overschreven worden, kan je een functie ook oproepen zonder de hele library op te roepen.
+Dat doe je op de volgende manier:
+
+`MASS::dose.p(fit, p=0.5)`
+
+Die dubbele dubbele punt betekent dat je vanuit de package MASS de functie dose.p oproept.
+
+In bovenstaande functie staat fit voor het GLM-model, en het argument p geeft aan voor welke kans je de waarde voor de verklarende factor wilt weten.
+
+Als voorbeeld weer de tomaten.
+De teler wilt weten op welk moment 75% van de tomaten rijp zijn:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+MASS::dose.p(fit2, p=0.75)
+
+```
+
+Bij 2,84 dagen voor oogsten is gemiddeld 75% van de tomaten rijp.
+De standaardfout van deze schatting is 2,35
+
+```{exercise, LT50}
+LT50
+
+* Welke log-odd hoort bij LT50?
+
+```
+
+```{exercise, MASS}
+MASS
+
+* installeer de package MASS
+* Bereken de LG50 voor het voorbeeld van de Guppies.
+
+```

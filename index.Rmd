@@ -1,0 +1,27 @@
+--- 
+title: "Stat4: Binomiale data"
+author: "Team Toegepaste Biologie Venlo"
+date: '`r Sys.Date()`'
+documentclass: book
+
+site: bookdown::bookdown_site
+biblio-style: apalike
+---
+
+# Voorwoord {-}
+Het afgelopen blok hebben jullie gewerkt met responsvariabelen die van het niveau interval/ratio en continue zijn, op een hoofdstuk na: survival analysis.
+
+Survivaldata is een duidelijk voorbeeld van binomiale data.
+Het kan twee waardes aannemen: dood/levend, heel/kapot, etc.
+In dit blok gaan we verder met binomiale data (hoofdstuk 1 en 2).
+
+Verder gaan we aan de slag met frequentiedata (hoofstuk 3).
+Een voorbeeld van frequentiedata heb je al verzameld en geanalyseerd in jaar 1 (krekelpracticum) en mogelijk ook tijdens je eigen project in blok 2 (diergedrag).
+
+Hoofstuk 4 en 5 gaan over multivariate technieken.
+Dan heb je te maken met meerdere responsvariabelen.
+
+We eindigen dit blok met een overzicht van alle toetsen die jullie gehad hebben.
+Hiermee hopen we dat jullie voorbereid zijn op dataverwerking in jaar 3 en 4.
+Dan moeten jullie het namelijk zelf kunnen.
+

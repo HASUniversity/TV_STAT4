@@ -1,0 +1,34 @@
+#Voorbereiding op jaar 3 en 4
+
+Met dit laatste hoofdstuk sluit je je statistiekonderwijs af.
+Vanaf nu ga je het écht in de praktijk leren toepassen!
+
+
+##Overzicht toetsen
+
+```{exercise, overzicht}
+Overzicht
+
+* Maak voor jezelf een overzicht van de statistische toetsen die je tijdens je studie hebt geleerd.
+* Geef voor iedere toets aan van wat voor niveau (interval/ratio, ordinaal of nominaal) de responsvariabele(n) en verklarende variabele(n) zijn.
+* Geef voor iedere toets een voorbeeld van een bijbehorende experimentele opzet.
+
+```
+
+
+```{exercise, welke_toets}
+Wanneer welke toets?
+
+* Maak de quiz via de volgende [link](https://forms.office.com/Pages/ResponsePage.aspx?id=KiOfzFGYsEayPmQdaAWQ3wQeab5hX9VKmg2j17Cef29UOE9HRVE0S1dVRVBEV1JQMFFYV0RZUzdJUi4u)
+
+
+```
+
+##Oefenen met case studies
+
+```{r, echo = FALSE}
+  
+print("test")
+```
+
+
